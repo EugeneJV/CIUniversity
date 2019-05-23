@@ -28,7 +28,6 @@ public class HibernateUtil {
     }
 
     public static void shutdown() {
-        // Чистит кеш и закрывает соединение с БД
         getSessionFactory().close();
     }
 
