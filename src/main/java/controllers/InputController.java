@@ -7,7 +7,6 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import persistence.HibernateUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,14 +26,16 @@ public class InputController{
 
     }
 
-    public static void headOfDepartment(String dep) {
+    public static void headOfDepartment(String departmentName) {
         Session session = HibernateUtil.getSessionFactory().getCurrentSession();
         session.getTransaction().begin();
 
         Department head = (Department) session.createQuery("from Department d where d.name=:name")
-                .setParameter("name", dep).uniqueResult();
-        System.out.println("The head of department is " + head.getHeadOfDepartment());
-
+                .setParameter("name", departmentName).uniqueResult();
+        if (!head.equals(null)){
+        System.out.println("The head of department is " + head.getHeadOfDepartment());}
+        else
+            System.out.println("Wrong input");
         session.getTransaction().commit();
     }
 
@@ -43,6 +44,7 @@ public class InputController{
         Session session = HibernateUtil.getSessionFactory().getCurrentSession();
         session.getTransaction().begin();
 
+        if (department.isPresent()){
         Query q = session.createQuery("select count(l.name) " +
                 "from Lector l where l.degree=:degree and :department in elements(l.departments)");
         Long assistantsCount = (Long) q.setParameter("degree", DegreeOfLector.ROLE_ASSISTANT)
@@ -58,35 +60,41 @@ public class InputController{
         System.out.println("ROLE_ASSISTANT: " + assistantsCount);
         System.out.println("ROLE_ASSOCIATE_PROFESSOR: " + assosiateProfessorsCount);
         System.out.println("ROLE_PROFESSOR: " + professorsCount);
-
-        }
+        }else
+            System.out.println("Wrong input");
+    }
 
     public static void averageSalary(String departmentName) {
         Optional<Department> department = findDepartmentByName(departmentName);
         Session session = HibernateUtil.getSessionFactory().getCurrentSession();
         session.getTransaction().begin();
 
+        if (department.isPresent()){
         Query q = session.createQuery("select avg(l.salary) from Lector l where :name in elements(l.departments) ").
                     setParameter("name", department.get());
         Double avgSalary = (Double) q.uniqueResult();
 
         session.getTransaction().commit();
         System.out.println("The average salary for department " + departmentName + ": " + avgSalary);
-        }
+        }else
+            System.out.println("Wrong input");
+    }
 
 
     public static void countOfEmployee(String departmentName) {
         Optional<Department> department = findDepartmentByName(departmentName);
         Session session = HibernateUtil.getSessionFactory().getCurrentSession();
         session.getTransaction().begin();
-
-        Query q = session.createQuery("select count(l) from Lector l where :name in elements(l.departments) ").
+        if (department.isPresent()) {
+            Query q = session.createQuery("select count(l) from Lector l where :name in elements(l.departments) ").
                     setParameter("name", department.get());
-        Long count = (Long) q.uniqueResult();
+            Long count = (Long) q.uniqueResult();
 
-        session.getTransaction().commit();
-        System.out.println("Count of employee of department " + departmentName + ": " + count);
-        }
+            session.getTransaction().commit();
+            System.out.println("Count of employee of department " + departmentName + ": " + count);
+        } else
+            System.out.println("Wrong input");
+    }
 
     public static void globalSearch(String word) {
         Session session = HibernateUtil.getSessionFactory().getCurrentSession();
